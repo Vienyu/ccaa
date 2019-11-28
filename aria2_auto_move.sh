@@ -1,0 +1,29 @@
+####################################################
+# ~/.aria2/move.sh
+####################################################
+
+#!/bin/sh
+
+DOWNLOAD=/data/ccaaDown # Aria2 配置的下载路径，结尾不要有 /
+COMPLETE=/var/www/html/data/user03035/files # 下载完成后需要移动到的路径，结尾不要有 /
+LOG=/etc/ccaa/aria2_auto_move.log # 自动移动日志
+SRC=$3
+
+if [ "$2" == "0" ]; then
+	  echo `date` "INFO  no file to move for" "$1". >> "$LOG"
+	    exit 0
+    fi
+
+    while true; do
+	      DIR=`dirname "$SRC"`
+	        if [ "$DIR" == "$DOWNLOAD" ]; then
+			    echo `date` "INFO " "$3" moved as "$SRC". >> "$LOG"
+			        mv --backup=t "$SRC" "$COMPLETE" >> "$LOG" 2>&1
+				    exit $?
+				      elif [ "$DIR" == "/" -o "$DIR" == "." ]; then
+					          echo `date` ERROR "$3" not under "$DOWNLOAD". >> "$LOG"
+						      exit 1
+						        else
+								    SRC=$DIR
+								      fi
+							      done

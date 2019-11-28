@@ -11,6 +11,7 @@ export PATH
 function setout(){
 	if [ -e "/usr/bin/yum" ]
 	then
+		yum -y install epel-release 
 		yum -y install curl gcc gcc+ make bzip2
 	else
 		#更新软件，否则可能make命令无法安装
@@ -55,6 +56,8 @@ function dealconf(){
 	cp caddy.conf /etc/ccaa/
 	cp upbt.sh /etc/ccaa/
 	chmod +x /etc/ccaa/upbt.sh
+	chmod +x /etc/ccaa/aria2_auto_move.sh
+	chmod +x /etc/ccaa/aria2_on_download_complete.sh
 	chmod +x ccaa
 	cp ccaa /usr/sbin
 }
@@ -111,7 +114,8 @@ function del_post() {
 #设置账号密码
 function setting(){
 	echo '-------------------------------------------------------------'
-	read -p "设置下载路径（请填写绝对地址，默认/data/ccaaDown）:" downpath
+	read -p "设置 Aria2 下载路径（请填写绝对地址，默认/data/ccaaDowning）:" downingpath
+	read -p "设置 Caddy 路径（请填写绝对地址，默认/data/ccaaDown）:" downpath
 	read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符):" secret
 	#如果Aria2密钥为空
 	while [ -z "${secret}" ]
@@ -131,6 +135,11 @@ function setting(){
 		read -p "设置Caddy密码:" caddypass
 	done
 
+	#如果 Aria2 下载路径为空，设置默认下载路径
+	if [ -z "${downingpath}" ]
+	then
+		downingpath='/data/ccaaDowning'
+	fi
 	#如果下载路径为空，设置默认下载路径
 	if [ -z "${downpath}" ]
 	then
@@ -138,13 +147,15 @@ function setting(){
 	fi
 
 	#执行替换操作
+	mkdir -p ${downingpath}
 	mkdir -p ${downpath}
-	sed -i "s%dir=%dir=${downpath}%g" /etc/ccaa/aria2.conf
+	sed -i "s%dir=%dir=${downingpath}%g" /etc/ccaa/aria2.conf
 	sed -i "s/rpc-secret=/rpc-secret=${secret}/g" /etc/ccaa/aria2.conf
 	sed -i "s/username/${caddyuser}/g" /etc/ccaa/caddy.conf
 	sed -i "s/password/${caddypass}/g" /etc/ccaa/caddy.conf
 	#sed -i "s%/home%${downpath}%g" /etc/ccaa/caddy.conf
 	sed -i "s%/admin%/admin ${downpath}%g" /etc/ccaa/caddy.conf
+	sed -i "s%COMDIR=%COMDIR=${downpath}%g" /etc/ccaa/aria2_on_download_complete.sh
 	#更新tracker
 	bash ./upbt.sh
 
@@ -208,13 +219,22 @@ function uninstall(){
 #选择安装方式
 echo "------------------------------------------------"
 echo "Linux + Caddy + Aria2 + AriaNg一键安装脚本(CCAA)"
-echo "1) 安装CCAA"
-echo "2) 卸载CCAA"
-echo "3) 更新bt-tracker"
+echo "1) 安装 Aria2"
+echo "2) 安装 CCAA"
+echo "3) 卸载 CCAA"
+echo "4) 更新 bt-tracker"
 echo "q) 退出！"
 read -p ":" istype
 case $istype in
-    1) 
+	1) 
+    	setout
+    	install_aria2 && \
+    	dealconf && \
+    	chk_firewall && \
+    	setting && \
+    	cleanup
+    ;;
+    2) 
     	setout
     	install_aria2 && \
     	install_caddy && \
@@ -223,10 +243,10 @@ case $istype in
     	setting && \
     	cleanup
     ;;
-    2) 
+    3) 
     	uninstall
     ;;
-    3) 
+    4) 
     	bash ./upbt.sh
     ;;
     q) 

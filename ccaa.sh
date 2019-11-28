@@ -21,6 +21,46 @@ function setout(){
 }
 #安装Aria2
 function install_aria2(){
+	mkdir -p /etc/ccaa/
+	touch /etc/ccaa/aria2.session
+	touch /etc/ccaa/aria2.log
+	cp aria2.conf /etc/ccaa/
+	cp upbt.sh /etc/ccaa/
+	cp aria2_auto_move.sh /etc/ccaa/
+	cp aria2_on_download_complete.sh /etc/ccaa/
+
+	chmod +x /etc/ccaa/upbt.sh
+	chmod +x /etc/ccaa/aria2_auto_move.sh
+	chmod +x /etc/ccaa/aria2_on_download_complete.sh
+
+
+	echo '-------------------------------------------------------------'
+	read -p "设置 Aria2 下载路径（请填写绝对地址，默认/data/ccaaDowning）:" downingpath
+	read -p "设置存储路径（请填写绝对地址，默认/data/ccaaDown）:" downpath
+	read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符):" secret
+	#如果Aria2密钥为空
+	while [ -z "${secret}" ]
+	do
+		read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符):" secret
+	done
+	
+	#如果 Aria2 下载路径为空，设置默认下载路径
+	if [ -z "${downingpath}" ]
+	then
+		downingpath='/data/ccaaDowning'
+	fi
+	#如果下载路径为空，设置默认下载路径
+	if [ -z "${downpath}" ]
+	then
+		downpath='/data/ccaaDown'
+	fi
+	mkdir -p ${downingpath}
+	mkdir -p ${downpath}
+	
+	sed -i "s%dir=%dir=${downingpath}%g" /etc/ccaa/aria2.conf
+	sed -i "s/rpc-secret=/rpc-secret=${secret}/g" /etc/ccaa/aria2.conf
+	sed -i "s%COMDIR=%COMDIR=${downpath}%g" /etc/ccaa/aria2_on_download_complete.sh
+
 	#yum -y update
 	#安装aria2静态编译版本，来源于https://github.com/q3aql/aria2-static-builds/
 	wget -c http://soft.xiaoz.org/linux/aria2-1.34.0-linux-gnu-64bit-build1.tar.bz2
@@ -28,9 +68,37 @@ function install_aria2(){
 	cd aria2-1.34.0-linux-gnu-64bit-build1
 	make install
 	cd ..
+	
+	#更新tracker
+	bash ./upbt.sh
+	#启动服务
+	nohup aria2c --conf-path=/etc/ccaa/aria2.conf > /etc/ccaa/aria2.log 2>&1 &
 }
 #安装caddy
 function install_caddy(){
+	mkdir -p /etc/ccaa/
+	touch /etc/ccaa/caddy.log
+	cp caddy.conf /etc/ccaa/
+	
+	
+	read -p "设置Caddy用户名:" caddyuser
+	while [ -z "${caddyuser}" ]
+	do
+		read -p "设置Caddy用户名:" caddyuser
+	done
+	
+	read -p "设置Caddy密码:" caddypass
+	while [ -z "${caddypass}" ]
+	do
+		read -p "设置Caddy密码:" caddypass
+	done
+
+	#执行替换操作	
+	sed -i "s/username/${caddyuser}/g" /etc/ccaa/caddy.conf
+	sed -i "s/password/${caddypass}/g" /etc/ccaa/caddy.conf
+	#sed -i "s%/home%${downpath}%g" /etc/ccaa/caddy.conf
+	sed -i "s%/admin%/admin ${downpath}%g" /etc/ccaa/caddy.conf
+
 	#一键安装https://caddyserver.com/download/linux/amd64?plugins=http.filemanager&license=personal&telemetry=off
 	#curl https://getcaddy.com | bash -s personal http.filemanager
 	#安装caddy
@@ -43,22 +111,19 @@ function install_caddy(){
 	#chmod +x /lib/systemd/system/caddy.service
 	#开机启动
 	#systemctl enable caddy.service
+	
+	#安装AriaNg
+	wget http://soft.xiaoz.org/website/AriaNg.zip
+	unzip AriaNg.zip
+	cp -a AriaNg /etc/ccaa
+
+	#启动服务
+	nohup caddy -conf="/etc/ccaa/caddy.conf" > /etc/ccaa/caddy.log 2>&1 &
 }
 
 #处理配置文件
 function dealconf(){
 	#创建目录和文件
-	mkdir -p /etc/ccaa/
-	touch /etc/ccaa/aria2.session
-	touch /etc/ccaa/aria2.log
-	touch /etc/ccaa/caddy.log
-	cp aria2.conf /etc/ccaa/
-	cp caddy.conf /etc/ccaa/
-	cp aria2_on_download_complete.sh /etc/ccaa/
-	cp upbt.sh /etc/ccaa/
-	chmod +x /etc/ccaa/upbt.sh
-	chmod +x /etc/ccaa/aria2_auto_move.sh
-	chmod +x /etc/ccaa/aria2_on_download_complete.sh
 	chmod +x ccaa
 	cp ccaa /usr/sbin
 }
@@ -114,61 +179,6 @@ function del_post() {
 }
 #设置账号密码
 function setting(){
-	echo '-------------------------------------------------------------'
-	read -p "设置 Aria2 下载路径（请填写绝对地址，默认/data/ccaaDowning）:" downingpath
-	read -p "设置 Caddy 路径（请填写绝对地址，默认/data/ccaaDown）:" downpath
-	read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符):" secret
-	#如果Aria2密钥为空
-	while [ -z "${secret}" ]
-	do
-		read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符):" secret
-	done
-	
-	read -p "设置Caddy用户名:" caddyuser
-	while [ -z "${caddyuser}" ]
-	do
-		read -p "设置Caddy用户名:" caddyuser
-	done
-	
-	read -p "设置Caddy密码:" caddypass
-	while [ -z "${caddypass}" ]
-	do
-		read -p "设置Caddy密码:" caddypass
-	done
-
-	#如果 Aria2 下载路径为空，设置默认下载路径
-	if [ -z "${downingpath}" ]
-	then
-		downingpath='/data/ccaaDowning'
-	fi
-	#如果下载路径为空，设置默认下载路径
-	if [ -z "${downpath}" ]
-	then
-		downpath='/data/ccaaDown'
-	fi
-
-	#执行替换操作
-	mkdir -p ${downingpath}
-	mkdir -p ${downpath}
-	sed -i "s%dir=%dir=${downingpath}%g" /etc/ccaa/aria2.conf
-	sed -i "s/rpc-secret=/rpc-secret=${secret}/g" /etc/ccaa/aria2.conf
-	sed -i "s/username/${caddyuser}/g" /etc/ccaa/caddy.conf
-	sed -i "s/password/${caddypass}/g" /etc/ccaa/caddy.conf
-	#sed -i "s%/home%${downpath}%g" /etc/ccaa/caddy.conf
-	sed -i "s%/admin%/admin ${downpath}%g" /etc/ccaa/caddy.conf
-	sed -i "s%COMDIR=%COMDIR=${downpath}%g" /etc/ccaa/aria2_on_download_complete.sh
-	#更新tracker
-	bash ./upbt.sh
-
-	#安装AriaNg
-	wget http://soft.xiaoz.org/website/AriaNg.zip
-	unzip AriaNg.zip
-	cp -a AriaNg /etc/ccaa
-
-	#启动服务
-	nohup aria2c --conf-path=/etc/ccaa/aria2.conf > /etc/ccaa/aria2.log 2>&1 &
-	nohup caddy -conf="/etc/ccaa/caddy.conf" > /etc/ccaa/caddy.log 2>&1 &
-
 	#获取ip
 	osip=$(curl -4s https://api.ip.sb/ip)
 

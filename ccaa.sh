@@ -54,6 +54,7 @@ function dealconf(){
 	touch /etc/ccaa/caddy.log
 	cp aria2.conf /etc/ccaa/
 	cp caddy.conf /etc/ccaa/
+	cp aria2_on_download_complete.sh /etc/ccaa/
 	cp upbt.sh /etc/ccaa/
 	chmod +x /etc/ccaa/upbt.sh
 	chmod +x /etc/ccaa/aria2_auto_move.sh

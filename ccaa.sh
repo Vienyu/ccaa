@@ -9,18 +9,25 @@ export PATH
 
 #安装之前的准备
 function setout(){
+	echo 'setout()'
 	if [ -e "/usr/bin/yum" ]
 	then
 		yum -y install epel-release 
-		yum -y install curl gcc gcc+ make bzip2
+		yum -y install curl
+		yum -y install gcc
+		yum -y install gcc+
+		yum -y install make
+		yum -y install bzip2
 	else
 		#更新软件，否则可能make命令无法安装
 		sudo apt-get update
 		sudo apt-get install -y curl make
 	fi
+	echo 'setout() finished!'
 }
 #安装Aria2
 function install_aria2(){
+	echo 'install_aria2()'
 	mkdir -p /etc/ccaa/
 	touch /etc/ccaa/aria2.session
 	touch /etc/ccaa/aria2.log
@@ -70,12 +77,16 @@ function install_aria2(){
 	cd ..
 	
 	#更新tracker
-	bash ./upbt.sh
+	bash /etc/ccaa/upbt.sh
 	#启动服务
 	nohup aria2c --conf-path=/etc/ccaa/aria2.conf > /etc/ccaa/aria2.log 2>&1 &
+
+	echo 'install_aria2() Finished!'
 }
 #安装caddy
 function install_caddy(){
+	echo 'install_caddy()'
+	pwd
 	mkdir -p /etc/ccaa/
 	touch /etc/ccaa/caddy.log
 	cp caddy.conf /etc/ccaa/
@@ -119,16 +130,22 @@ function install_caddy(){
 
 	#启动服务
 	nohup caddy -conf="/etc/ccaa/caddy.conf" > /etc/ccaa/caddy.log 2>&1 &
+	
+	echo 'install_caddy() Finished!'
 }
 
 #处理配置文件
 function dealconf(){
+	echo 'dealconf()!'
+	pwd
 	#创建目录和文件
-	chmod +x ccaa
 	cp ccaa /usr/sbin
+	chmod +x /usr/sbin/ccaa
+	echo 'dealconf() Finished!'
 }
 #自动放行端口
 function chk_firewall(){
+	echo 'chk_firewall()'
 	if [ -e "/etc/sysconfig/iptables" ]
 	then
 		iptables -I INPUT -p tcp --dport 6080 -j ACCEPT
@@ -151,9 +168,12 @@ function chk_firewall(){
 		sudo ufw allow 6998/tcp
 		sudo ufw allow 51413/tcp
 	fi
+	echo 'chk_firewall() finished!'
 }
 #删除端口
 function del_post() {
+	echo 'del_post() finished!'
+
 	if [ -e "/etc/sysconfig/iptables" ]
 	then
 		sed -i '/^.*6080.*/'d /etc/sysconfig/iptables
@@ -176,9 +196,13 @@ function del_post() {
 		sudo ufw delete 6998/tcp
 		sudo ufw delete 51413/tcp
 	fi
+	
+	echo 'del_post() finished!'
 }
 #设置账号密码
 function setting(){
+	echo 'setting()'
+
 	#获取ip
 	osip=$(curl -4s https://api.ip.sb/ip)
 
@@ -192,6 +216,7 @@ function setting(){
 }
 #清理工作
 function cleanup(){
+	echo 'cleanup()'
 	rm -rf *.zip
 	rm -rf *.gz
 	rm -rf *.txt

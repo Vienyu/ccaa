@@ -18,10 +18,12 @@ function setout(){
 		yum -y install gcc+
 		yum -y install make
 		yum -y install bzip2
+		yum -y install p7zip
 	else
 		#更新软件，否则可能make命令无法安装
 		sudo apt-get update
-		sudo apt-get install -y curl make
+		sudo apt-get install -y curl make p7zip
+		apt install p7zip-full
 	fi
 	echo 'setout() finished!'
 }
@@ -44,7 +46,7 @@ function install_aria2(){
 	echo '-------------------------------------------------------------'
 	read -p "设置 Aria2 下载路径（请填写绝对地址，默认/data/ccaaDowning）:" downingpath
 	read -p "设置存储路径（请填写绝对地址，默认/data/ccaaDown）:" downpath
-	read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符):" secret
+	read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符，默认CcaasecreT!):" secret
 	#如果Aria2密钥为空
 	while [ -z "${secret}" ]
 	do
@@ -61,6 +63,12 @@ function install_aria2(){
 	then
 		downpath='/data/ccaaDown'
 	fi
+	#如果RPC 密钥为空，设置默认 RPC 密钥
+	if [ -z "${secret}" ]
+	then
+		secret='CcaasecreT!'
+	fi
+
 	mkdir -p ${downingpath}
 	mkdir -p ${downpath}
 	

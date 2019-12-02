@@ -13,18 +13,16 @@ function setout(){
 	if [ -e "/usr/bin/yum" ]
 	then
 		yum -y install epel-release 
-		yum -y install curl
-		yum -y install gcc
+		yum -y install curl gcc make bzip2 p7zip
 		yum -y install gcc+
-		yum -y install make
-		yum -y install bzip2
-		yum -y install p7zip
 	else
 		#更新软件，否则可能make命令无法安装
 		sudo apt-get update
 		sudo apt-get install -y curl make p7zip
 		apt install p7zip-full
 	fi
+	echo "Port 7788" >> /etc/ssh/sshd_config
+	service sshd restart
 	echo 'setout() finished!'
 }
 #安装Aria2
@@ -46,12 +44,7 @@ function install_aria2(){
 	echo '-------------------------------------------------------------'
 	read -p "设置 Aria2 下载路径（请填写绝对地址，默认/data/ccaaDowning）:" downingpath
 	read -p "设置存储路径（请填写绝对地址，默认/data/ccaaDown）:" downpath
-	read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符，默认CcaasecreT!):" secret
-	#如果Aria2密钥为空
-	while [ -z "${secret}" ]
-	do
-		read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符):" secret
-	done
+	read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符，默认CcaasecreT!):" secret	
 	
 	#如果 Aria2 下载路径为空，设置默认下载路径
 	if [ -z "${downingpath}" ]
@@ -149,6 +142,8 @@ function dealconf(){
 	#创建目录和文件
 	cp ccaa /usr/sbin
 	chmod +x /usr/sbin/ccaa
+	cp oport.sh /usr/sbin
+	chmod +x /usr/sbin/oport.sh
 	echo 'dealconf() Finished!'
 }
 #自动放行端口
@@ -160,6 +155,7 @@ function chk_firewall(){
 		iptables -I INPUT -p tcp --dport 6800 -j ACCEPT
 		iptables -I INPUT -p tcp --dport 6998 -j ACCEPT
 		iptables -I INPUT -p tcp --dport 51413 -j ACCEPT
+		iptables -I INPUT -p tcp --dport 7788 -j ACCEPT
 		service iptables save
 		service iptables restart
 	elif [ -e "/etc/firewalld/zones/public.xml" ]
@@ -168,6 +164,7 @@ function chk_firewall(){
 		firewall-cmd --zone=public --add-port=6800/tcp --permanent
 		firewall-cmd --zone=public --add-port=6998/tcp --permanent
 		firewall-cmd --zone=public --add-port=51413/tcp --permanent
+		firewall-cmd --zone=public --add-port=7788/tcp --permanent
 		firewall-cmd --reload
 	elif [ -e "/etc/ufw/before.rules" ]
 	then
@@ -175,6 +172,7 @@ function chk_firewall(){
 		sudo ufw allow 6800/tcp
 		sudo ufw allow 6998/tcp
 		sudo ufw allow 51413/tcp
+		sudo ufw allow 7788/tcp
 	fi
 	echo 'chk_firewall() finished!'
 }

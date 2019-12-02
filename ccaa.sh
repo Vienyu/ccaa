@@ -44,7 +44,8 @@ function install_aria2(){
 	echo '-------------------------------------------------------------'
 	read -p "设置 Aria2 下载路径（请填写绝对地址，默认/data/ccaaDowning）:" downingpath
 	read -p "设置存储路径（请填写绝对地址，默认/data/ccaaDown）:" downpath
-	read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符，默认CcaasecreT!):" secret	
+	read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符，默认canbya):" secret
+	echo '-------------------------------------------------------------'
 	
 	#如果 Aria2 下载路径为空，设置默认下载路径
 	if [ -z "${downingpath}" ]
@@ -59,7 +60,7 @@ function install_aria2(){
 	#如果RPC 密钥为空，设置默认 RPC 密钥
 	if [ -z "${secret}" ]
 	then
-		secret='CcaasecreT!'
+		secret='canbya!'
 	fi
 
 	mkdir -p ${downingpath}
@@ -93,17 +94,20 @@ function install_caddy(){
 	cp caddy.conf /etc/ccaa/
 	
 	
-	read -p "设置Caddy用户名:" caddyuser
-	while [ -z "${caddyuser}" ]
-	do
-		read -p "设置Caddy用户名:" caddyuser
-	done
-	
-	read -p "设置Caddy密码:" caddypass
-	while [ -z "${caddypass}" ]
-	do
-		read -p "设置Caddy密码:" caddypass
-	done
+	echo '-------------------------------------------------------------'
+	read -p "设置Caddy用户名（默认k）:" caddyuser
+	read -p "设置Caddy密码（默认canbya）:" caddypass
+	echo '-------------------------------------------------------------'
+	#如果 Caddy 用户名为空，设置默认用户名
+	if [ -z "${caddyuser}" ]
+	then
+		caddyuser='k'
+	fi
+	#如果 Caddy 密码为空，设置默认密码
+	if [ -z "${caddypass}" ]
+	then
+		caddypass='canbya'
+	fi
 
 	#执行替换操作	
 	sed -i "s/username/${caddyuser}/g" /etc/ccaa/caddy.conf

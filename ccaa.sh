@@ -21,8 +21,8 @@ function setout(){
 		sudo apt-get install -y curl make p7zip
 		apt install p7zip-full
 	fi
-	echo "Port 7788" >> /etc/ssh/sshd_config
-	service sshd restart
+	#echo "Port 7788" >> /etc/ssh/sshd_config
+	#service sshd restart
 	echo 'setout() finished!'
 }
 #安装Aria2
@@ -155,7 +155,7 @@ function chk_firewall(){
 		iptables -I INPUT -p tcp --dport 6800 -j ACCEPT
 		iptables -I INPUT -p tcp --dport 6998 -j ACCEPT
 		iptables -I INPUT -p tcp --dport 51413 -j ACCEPT
-		iptables -I INPUT -p tcp --dport 7788 -j ACCEPT
+		#iptables -I INPUT -p tcp --dport 7788 -j ACCEPT
 		service iptables save
 		service iptables restart
 	elif [ -e "/etc/firewalld/zones/public.xml" ]
@@ -164,7 +164,7 @@ function chk_firewall(){
 		firewall-cmd --zone=public --add-port=6800/tcp --permanent
 		firewall-cmd --zone=public --add-port=6998/tcp --permanent
 		firewall-cmd --zone=public --add-port=51413/tcp --permanent
-		firewall-cmd --zone=public --add-port=7788/tcp --permanent
+		#firewall-cmd --zone=public --add-port=7788/tcp --permanent
 		firewall-cmd --reload
 	elif [ -e "/etc/ufw/before.rules" ]
 	then
@@ -172,7 +172,7 @@ function chk_firewall(){
 		sudo ufw allow 6800/tcp
 		sudo ufw allow 6998/tcp
 		sudo ufw allow 51413/tcp
-		sudo ufw allow 7788/tcp
+		#sudo ufw allow 7788/tcp
 	fi
 	echo 'chk_firewall() finished!'
 }

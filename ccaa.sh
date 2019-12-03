@@ -60,7 +60,7 @@ function install_aria2(){
 	#如果RPC 密钥为空，设置默认 RPC 密钥
 	if [ -z "${secret}" ]
 	then
-		secret='canbya!'
+		secret='canbya'
 	fi
 
 	mkdir -p ${downingpath}

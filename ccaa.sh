@@ -7,19 +7,31 @@
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin:/sbin
 export PATH
 
+downingpath
+downpath
+secret
+caddyuser
+caddypass
+quiet = "n"
+
+if [ "$1" == "q"];then
+	quiet = "y"
+fi
+
 #安装之前的准备
 function setout(){
 	echo 'setout()'
 	if [ -e "/usr/bin/yum" ]
 	then
 		yum -y install epel-release 
-		yum -y install curl gcc make bzip2 p7zip
+		yum -y install curl gcc make bzip2 p7zip unrar
 		yum -y install gcc+
 	else
 		#更新软件，否则可能make命令无法安装
 		sudo apt-get update
-		sudo apt-get install -y curl make p7zip
-		apt install p7zip-full
+		sudo apt-get install -y curl make p7zip unzip
+		sudo apt install p7zip-full
+		sudo apt install unrar
 	fi
 	#echo "Port 7788" >> /etc/ssh/sshd_config
 	#service sshd restart
@@ -28,25 +40,26 @@ function setout(){
 #安装Aria2
 function install_aria2(){
 	echo 'install_aria2()'
-	mkdir -p /etc/ccaa/
-	touch /etc/ccaa/aria2.session
-	touch /etc/ccaa/aria2.log
-	cp aria2.conf /etc/ccaa/
-	cp upbt.sh /etc/ccaa/
-	cp aria2_auto_move.sh /etc/ccaa/
-	cp aria2_on_download_complete.sh /etc/ccaa/
+	sudo mkdir -p /etc/ccaa/
+	sudo touch /etc/ccaa/aria2.session
+	sudo touch /etc/ccaa/aria2.log
+	sudo cp aria2.conf /etc/ccaa/
+	sudo cp upbt.sh /etc/ccaa/
+	sudo cp aria2_auto_move.sh /etc/ccaa/
+	sudo cp aria2_on_download_complete.sh /etc/ccaa/
 
-	chmod +x /etc/ccaa/upbt.sh
-	chmod +x /etc/ccaa/aria2_auto_move.sh
-	chmod +x /etc/ccaa/aria2_on_download_complete.sh
+	sudo chmod +x /etc/ccaa/upbt.sh
+	sudo chmod +x /etc/ccaa/aria2_auto_move.sh
+	sudo chmod +x /etc/ccaa/aria2_on_download_complete.sh
 
-
-	echo '-------------------------------------------------------------'
-	read -p "设置 Aria2 下载路径（请填写绝对地址，默认/data/ccaaDowning）:" downingpath
-	read -p "设置存储路径（请填写绝对地址，默认/data/ccaaDown）:" downpath
-	read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符，默认canbya):" secret
-	echo '-------------------------------------------------------------'
-	
+	if["$quiet" == 'n']
+	then
+		echo '-------------------------------------------------------------'
+		read -p "设置 Aria2 下载路径（请填写绝对地址，默认/data/ccaaDowning）:" downingpath
+		read -p "设置存储路径（请填写绝对地址，默认/data/ccaaDown）:" downpath
+		read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符，默认canbya):" secret
+		echo '-------------------------------------------------------------'
+	fi
 	#如果 Aria2 下载路径为空，设置默认下载路径
 	if [ -z "${downingpath}" ]
 	then
@@ -63,25 +76,26 @@ function install_aria2(){
 		secret='canbya'
 	fi
 
-	mkdir -p ${downingpath}
-	mkdir -p ${downpath}
+	sudo mkdir -p ${downingpath}
+	sudo mkdir -p ${downpath}
 	
-	sed -i "s%dir=%dir=${downingpath}%g" /etc/ccaa/aria2.conf
-	sed -i "s/rpc-secret=/rpc-secret=${secret}/g" /etc/ccaa/aria2.conf
-	sed -i "s%COMDIR=%COMDIR=${downpath}%g" /etc/ccaa/aria2_on_download_complete.sh
+	sudo sed -i "s%dir=%dir=${downingpath}%g" /etc/ccaa/aria2.conf
+	sudo sed -i "s/rpc-secret=/rpc-secret=${secret}/g" /etc/ccaa/aria2.conf
+	sudo sed -i "s%COMDIR=%COMDIR=${downpath}%g" /etc/ccaa/aria2_on_download_complete.sh
 
 	#yum -y update
 	#安装aria2静态编译版本，来源于https://github.com/q3aql/aria2-static-builds/
 	wget -c http://soft.xiaoz.org/linux/aria2-1.34.0-linux-gnu-64bit-build1.tar.bz2
 	tar jxvf aria2-1.34.0-linux-gnu-64bit-build1.tar.bz2
 	cd aria2-1.34.0-linux-gnu-64bit-build1
-	make install
+	sudo make install
 	cd ..
 	
 	#更新tracker
 	bash /etc/ccaa/upbt.sh
 	#启动服务
-	nohup aria2c --conf-path=/etc/ccaa/aria2.conf > /etc/ccaa/aria2.log 2>&1 &
+	#sudo nohup aria2c --conf-path=/etc/ccaa/aria2.conf > /etc/ccaa/aria2.log 2>&1 &
+	sudo nohup aria2c --conf-path=/etc/ccaa/aria2.conf
 
 	echo 'install_aria2() Finished!'
 }
@@ -89,15 +103,17 @@ function install_aria2(){
 function install_caddy(){
 	echo 'install_caddy()'
 	pwd
-	mkdir -p /etc/ccaa/
-	touch /etc/ccaa/caddy.log
-	cp caddy.conf /etc/ccaa/
+	sudo mkdir -p /etc/ccaa/
+	sudo touch /etc/ccaa/caddy.log
+	sudo cp caddy.conf /etc/ccaa/
 	
-	
-	echo '-------------------------------------------------------------'
-	read -p "设置Caddy用户名（默认k）:" caddyuser
-	read -p "设置Caddy密码（默认canbya）:" caddypass
-	echo '-------------------------------------------------------------'
+	if["$quiet" == 'n']
+	then
+		echo '-------------------------------------------------------------'
+		read -p "设置Caddy用户名（默认k）:" caddyuser
+		read -p "设置Caddy密码（默认canbya）:" caddypass
+		echo '-------------------------------------------------------------'
+	fi
 	#如果 Caddy 用户名为空，设置默认用户名
 	if [ -z "${caddyuser}" ]
 	then
@@ -110,18 +126,18 @@ function install_caddy(){
 	fi
 
 	#执行替换操作	
-	sed -i "s/username/${caddyuser}/g" /etc/ccaa/caddy.conf
-	sed -i "s/password/${caddypass}/g" /etc/ccaa/caddy.conf
+	sudo sed -i "s/username/${caddyuser}/g" /etc/ccaa/caddy.conf
+	sudo sed -i "s/password/${caddypass}/g" /etc/ccaa/caddy.conf
 	#sed -i "s%/home%${downpath}%g" /etc/ccaa/caddy.conf
-	sed -i "s%/admin%/admin ${downpath}%g" /etc/ccaa/caddy.conf
+	sudo sed -i "s%/admin%/admin ${downpath}%g" /etc/ccaa/caddy.conf
 
 	#一键安装https://caddyserver.com/download/linux/amd64?plugins=http.filemanager&license=personal&telemetry=off
 	#curl https://getcaddy.com | bash -s personal http.filemanager
 	#安装caddy
 	wget http://soft.xiaoz.org/linux/caddy_v0.11.0_linux_amd64_custom_personal.tar.gz -O caddy.tar.gz
 	tar -zxvf caddy.tar.gz
-	mv caddy /usr/sbin/
-	chmod +x /usr/sbin/caddy
+	sudo mv caddy /usr/sbin/
+	sudo chmod +x /usr/sbin/caddy
 	#添加服务
 	#mv init/linux-systemd/caddy.service /lib/systemd/system
 	#chmod +x /lib/systemd/system/caddy.service
@@ -131,10 +147,11 @@ function install_caddy(){
 	#安装AriaNg
 	wget http://soft.xiaoz.org/website/AriaNg.zip
 	unzip AriaNg.zip
-	cp -a AriaNg /etc/ccaa
+	sudo cp -a AriaNg /etc/ccaa
 
 	#启动服务
-	nohup caddy -conf="/etc/ccaa/caddy.conf" > /etc/ccaa/caddy.log 2>&1 &
+	#sudo nohup caddy -conf="/etc/ccaa/caddy.conf" > /etc/ccaa/caddy.log 2>&1 &
+	sudo nohup caddy -conf="/etc/ccaa/caddy.conf"
 	
 	echo 'install_caddy() Finished!'
 }
@@ -144,10 +161,13 @@ function dealconf(){
 	echo 'dealconf()!'
 	pwd
 	#创建目录和文件
-	cp ccaa /usr/sbin
-	chmod +x /usr/sbin/ccaa
-	cp oport.sh /usr/sbin
-	chmod +x /usr/sbin/oport.sh
+	sudo cp ccaa /usr/sbin
+	sudo chmod +x /usr/sbin/ccaa
+	sudo cp oport.sh /usr/sbin
+	sudo chmod +x /usr/sbin/oport.sh
+
+	sudo chmod +x bin/*
+	sudo cp bin/* /usr/sbin
 	echo 'dealconf() Finished!'
 }
 #自动放行端口
@@ -227,34 +247,34 @@ function setting(){
 #清理工作
 function cleanup(){
 	echo 'cleanup()'
-	rm -rf *.zip
-	rm -rf *.gz
-	rm -rf *.txt
-	rm -rf aria2-1.34*
+	sudo rm -rf *.zip
+	sudo rm -rf *.gz
+	sudo rm -rf *.txt
+	sudo rm -rf aria2-1.34*
 	#rm -rf *.conf
-	rm -rf init
+	sudo rm -rf init
 }
 
 #卸载
 function uninstall(){
 	#停止所有服务
-	kill -9 $(pgrep 'aria2c')
-	kill -9 $(pgrep 'caddy')
+	sudo kill -9 $(pgrep 'aria2c')
+	sudo kill -9 $(pgrep 'caddy')
 
 	#删除服务
 	#systemctl disable caddy.service
 	#rm -rf /lib/systemd/system/caddy.service
 	#删除文件
-	rm -rf /etc/ccaa
-	rm -rf /usr/sbin/caddy
-	rm -rf /usr/sbin/ccaa
-	rm -rf /usr/bin/aria2c
-	rm -rf aria2-1.*
-	rm -rf AriaNg*
+	sudo rm -rf /etc/ccaa
+	sudo rm -rf /usr/sbin/caddy
+	sudo rm -rf /usr/sbin/ccaa
+	sudo rm -rf /usr/bin/aria2c
+	sudo rm -rf aria2-1.*
+	sudo rm -rf AriaNg*
 	
 
-	rm -rf /usr/share/man/man1/aria2c.1
-	rm -rf /etc/ssl/certs/ca-certificates.crt
+	sudo rm -rf /usr/share/man/man1/aria2c.1
+	sudo rm -rf /etc/ssl/certs/ca-certificates.crt
 	#删除端口
 	del_post
 	echo "------------------------------------------------"

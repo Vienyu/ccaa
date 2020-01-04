@@ -1,0 +1,24 @@
+#!/bin/bash
+
+filePassDef = ''
+fileName = $1
+filePass = $2
+
+if [ -z "${filePass}" ]
+then
+	filePass=$filePassDef
+fi
+echo 'FileName="$fileName"'
+echo 'Passwd='"$filePass"
+
+
+7z x -p"filePass" $fileName
+
+
+read -p "----- Delete ArchFile:"$fileName"?(y/n)? -----" isDelArchFile
+echo '----- Answer is:'"$isDelArchFile"' -----'
+
+if [ "$isDelArchFile" == "y" ]
+then
+	rm $fileName
+fi

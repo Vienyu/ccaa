@@ -1,0 +1,18 @@
+{
+  "inbound": {         //服务器端流量入口
+    "port": 80,      //端口
+    "protocol": "vmess",  //这里采用Vmess协议
+    "settings": {
+      "clients": [
+        {
+          "id": "937a376b-1723-40de-9815-3bcee70cc8bb", //可UU生成的网站
+          "alterId": 64       //这个alterId越大放探测能力越强也越耗内存
+        }
+      ]
+    }
+  },
+  "outbound": {     //服务器端出口
+    "protocol": "freedom",
+    "settings": {}
+  }
+}

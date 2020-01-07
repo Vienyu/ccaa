@@ -7,17 +7,6 @@
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin:/sbin
 export PATH
 
-downingpath
-downpath
-secret
-caddyuser
-caddypass
-quiet = "n"
-
-if [ "$1" == "q"];then
-	quiet = "y"
-fi
-
 #安装之前的准备
 function setout(){
 	echo 'setout()'
@@ -52,14 +41,13 @@ function install_aria2(){
 	sudo chmod +x /etc/ccaa/aria2_auto_move.sh
 	sudo chmod +x /etc/ccaa/aria2_on_download_complete.sh
 
-	if["$quiet" == 'n']
-	then
+
 		echo '-------------------------------------------------------------'
 		read -p "设置 Aria2 下载路径（请填写绝对地址，默认/data/ccaaDowning）:" downingpath
 		read -p "设置存储路径（请填写绝对地址，默认/data/ccaaDown）:" downpath
 		read -p "Aria2 RPC 密钥:(字母或数字组合，不要含有特殊字符，默认canbya):" secret
 		echo '-------------------------------------------------------------'
-	fi
+
 	#如果 Aria2 下载路径为空，设置默认下载路径
 	if [ -z "${downingpath}" ]
 	then
@@ -107,13 +95,13 @@ function install_caddy(){
 	sudo touch /etc/ccaa/caddy.log
 	sudo cp caddy.conf /etc/ccaa/
 	
-	if["$quiet" == 'n']
-	then
+	#if["$quiet" == 'n']
+	#then
 		echo '-------------------------------------------------------------'
 		read -p "设置Caddy用户名（默认k）:" caddyuser
 		read -p "设置Caddy密码（默认canbya）:" caddypass
 		echo '-------------------------------------------------------------'
-	fi
+	#fi
 	#如果 Caddy 用户名为空，设置默认用户名
 	if [ -z "${caddyuser}" ]
 	then

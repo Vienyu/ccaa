@@ -1,6 +1,6 @@
 #!/bin/bash
 
-filePassDef='<[[--IsterGayOrMisterGray--]]>'
+filePassDef=''
 fileName=$1
 filePass=$2
 

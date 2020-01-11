@@ -6,7 +6,15 @@
 #导入环境变量
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin:/sbin
 export PATH
+
+sudo mkdir -p /usr/sbin/ccaa/
+sudo mkdir -p /etc/ccaa/
+sudo cp bin/* /usr/sbin/ccaa/
+sudo cp config/* /etc/ccaa/
+
 sudo chmod +x ./*.sh
+sudo chmod +x /etc/ccaa/*.sh
+
 
 #安装之前的准备
 function setout(){
@@ -17,17 +25,17 @@ function setout(){
 #安装Aria2
 function install_aria2(){
 	echo 'install_aria2()'
-	sudo mkdir -p /etc/ccaa/
+	#sudo mkdir -p /etc/ccaa/
 	sudo touch /etc/ccaa/aria2.session
 	sudo touch /etc/ccaa/aria2.log
-	sudo cp config/aria2.conf /etc/ccaa/
-	sudo cp config/aria2_auto_move.sh /etc/ccaa/
-	sudo cp config/aria2_on_download_complete.sh /etc/ccaa/
-	sudo cp bin/upbt /etc/ccaa/
+	#sudo cp config/aria2.conf /etc/ccaa/
+	#sudo cp config/aria2_auto_move.sh /etc/ccaa/
+	#sudo cp config/aria2_on_download_complete.sh /etc/ccaa/
+	
 
-	sudo chmod +x /etc/ccaa/upbt
-	sudo chmod +x /etc/ccaa/aria2_auto_move.sh
-	sudo chmod +x /etc/ccaa/aria2_on_download_complete.sh
+	#sudo chmod +x /usr/sbin/ccaa/upbt
+	#sudo chmod +x /etc/ccaa/aria2_auto_move.sh
+	#sudo chmod +x /etc/ccaa/aria2_on_download_complete.sh
 
 	downingpath='/data/ccaaDowning'	
 	downpath='/data/ccaaDown'	
@@ -42,17 +50,17 @@ function install_aria2(){
 
 	#yum -y update
 	#安装aria2静态编译版本，来源于https://github.com/q3aql/aria2-static-builds/
-	wget -c http://soft.xiaoz.org/linux/aria2-1.34.0-linux-gnu-64bit-build1.tar.bz2
+	wget -c http://soft.xiaoz.org/linux/aria2-1.34.0-linux-gnu-64bit-build1.tar.bz2 >> setup.log
 	tar jxvf aria2-1.34.0-linux-gnu-64bit-build1.tar.bz2
 	cd aria2-1.34.0-linux-gnu-64bit-build1
 	sudo make install
 	cd ..
 	
 	#更新tracker
-	bash /etc/ccaa/upbt
+	/usr/sbin/ccaa/upbt
 	#启动服务
-	#sudo nohup aria2c --conf-path=/etc/ccaa/aria2.conf > /etc/ccaa/aria2.log 2>&1 &
-	sudo nohup aria2c --conf-path=/etc/ccaa/aria2.conf
+	sudo nohup aria2c --conf-path=/etc/ccaa/aria2.conf > /etc/ccaa/aria2.log 2>&1 &
+	#sudo nohup aria2c --conf-path=/etc/ccaa/aria2.conf
 
 	echo 'install_aria2() Finished!'
 }
@@ -60,9 +68,8 @@ function install_aria2(){
 function install_caddy(){
 	echo 'install_caddy()'
 	pwd
-	sudo mkdir -p /etc/ccaa/
 	sudo touch /etc/ccaa/caddy.log
-	sudo cp caddy.conf /etc/ccaa/	
+	#sudo cp config/caddy.conf /etc/ccaa/	
 
 	caddyuser='k'
 	caddypass='canbya'	
@@ -76,8 +83,8 @@ function install_caddy(){
 	#一键安装https://caddyserver.com/download/linux/amd64?plugins=http.filemanager&license=personal&telemetry=off
 	#curl https://getcaddy.com | bash -s personal http.filemanager
 	#安装caddy
-	wget http://soft.xiaoz.org/linux/caddy_v0.11.0_linux_amd64_custom_personal.tar.gz -O caddy.tar.gz
-	tar -zxvf caddy.tar.gz
+	wget http://soft.xiaoz.org/linux/caddy_v0.11.0_linux_amd64_custom_personal.tar.gz -O caddy.tar.gz >> setup.log
+	tar -zxvf caddy.tar.gz >> setup.log
 	sudo mv caddy /usr/sbin/
 	sudo chmod +x /usr/sbin/caddy
 	#添加服务
@@ -87,13 +94,13 @@ function install_caddy(){
 	#systemctl enable caddy.service
 	
 	#安装AriaNg
-	wget http://soft.xiaoz.org/website/AriaNg.zip
-	unzip AriaNg.zip
+	wget http://soft.xiaoz.org/website/AriaNg.zip >> setup.log
+	7z x AriaNg.zip
 	sudo cp -a AriaNg /etc/ccaa
 
 	#启动服务
-	#sudo nohup caddy -conf="/etc/ccaa/caddy.conf" > /etc/ccaa/caddy.log 2>&1 &
-	sudo nohup caddy -conf="/etc/ccaa/caddy.conf"
+	sudo nohup caddy -conf="/etc/ccaa/caddy.conf" > /etc/ccaa/caddy.log 2>&1 &
+	#sudo nohup caddy -conf="/etc/ccaa/caddy.conf"
 	
 	echo 'install_caddy() Finished!'
 }
@@ -103,8 +110,8 @@ function dealconf(){
 	echo 'dealconf()!'
 	pwd
 	#创建目录和文件
-	sudo chmod +x bin/*
-	sudo cp bin/* /usr/sbin/ccaa
+	#sudo chmod +x bin/*
+	#sudo cp bin/* /usr/sbin/ccaa
 	echo 'dealconf() Finished!'
 }
 #自动放行端口
@@ -155,10 +162,10 @@ function del_post() {
 		firewall-cmd --reload
 	elif [ -e "/etc/ufw/before.rules" ]
 	then
-		sudo ufw delete 6080/tcp
-		sudo ufw delete 6800/tcp
-		sudo ufw delete 6998/tcp
-		sudo ufw delete 51413/tcp
+		#sudo ufw delete 6080/tcp
+		#sudo ufw delete 6800/tcp
+		#sudo ufw delete 6998/tcp
+		#sudo ufw delete 51413/tcp
 	fi
 	
 	echo 'del_post() finished!'
@@ -192,8 +199,8 @@ function cleanup(){
 #卸载
 function uninstall(){
 	#停止所有服务
-	sudo kill -9 $(pgrep 'aria2c')
-	sudo kill -9 $(pgrep 'caddy')
+	sudo pkill aria2c
+	sudo pkill caddy
 
 	#删除服务
 	#systemctl disable caddy.service

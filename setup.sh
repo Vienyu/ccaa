@@ -7,13 +7,16 @@
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin:/sbin
 export PATH
 
+sudo chmod +x ./*.sh
+sudo chmod +x ./config/*.sh
+sudo chmod +x ./bin/*.sh
+
 sudo mkdir -p /usr/sbin/ccaa/
 sudo mkdir -p /etc/ccaa/
-sudo cp bin/* /usr/sbin/ccaa/
-sudo cp config/* /etc/ccaa/
 
-sudo chmod +x ./*.sh
-sudo chmod +x /etc/ccaa/*.sh
+sudo cp bin/* /usr/sbin/ccaa/
+sudo cp bin/7u /usr/sbin/
+sudo cp config/* /etc/ccaa/
 
 
 #安装之前的准备
@@ -105,6 +108,12 @@ function install_caddy(){
 	echo 'install_caddy() Finished!'
 }
 
+function install_v2r(){
+	echo 'install_v2r() Finished!'
+	./v2r.sh
+	echo 'install_v2r() Finished!'
+}
+
 #处理配置文件
 function dealconf(){
 	echo 'dealconf()!'
@@ -166,6 +175,7 @@ function del_post() {
 		#sudo ufw delete 6800/tcp
 		#sudo ufw delete 6998/tcp
 		#sudo ufw delete 51413/tcp
+		echo 'ufw delete failed,need fix'
 	fi
 	
 	echo 'del_post() finished!'
@@ -223,41 +233,12 @@ function uninstall(){
 	echo "------------------------------------------------"
 }
 
-#选择安装方式
-echo "------------------------------------------------"
-echo "Linux + Caddy + Aria2 + AriaNg一键安装脚本(CCAA)"
-echo "1) 安装 Aria2"
-echo "2) 安装 CCAA"
-echo "3) 卸载 CCAA"
-echo "4) 更新 bt-tracker"
-echo "q) 退出！"
-read -p ":" istype
-case $istype in
-	1) 
-    	setout
-    	install_aria2 && \
-    	dealconf && \
-    	chk_firewall && \
-    	setting && \
-    	cleanup
-    ;;
-    2) 
-    	setout
-    	install_aria2 && \
-    	install_caddy && \
-    	dealconf && \
-    	chk_firewall && \
-    	setting && \
-    	cleanup
-    ;;
-    3) 
-    	uninstall
-    ;;
-    4) 
-    	bash ./upbt.sh
-    ;;
-    q) 
-    	exit
-    ;;
-    *) echo '参数错误！'
-esac
+setout
+install_v2r && \
+install_aria2 && \
+install_caddy && \
+dealconf && \
+chk_firewall && \
+setting && \
+cleanup
+ps

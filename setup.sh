@@ -9,7 +9,7 @@ export PATH
 
 sudo chmod +x ./*.sh
 sudo chmod +x ./config/*.sh
-sudo chmod +x ./bin/*.sh
+sudo chmod +x ./bin/*
 
 sudo mkdir -p /usr/sbin/ccaa/
 sudo mkdir -p /etc/ccaa/
@@ -41,7 +41,8 @@ function install_aria2(){
 	#sudo chmod +x /etc/ccaa/aria2_on_download_complete.sh
 
 	downingpath='/data/ccaaDowning'	
-	downpath='/data/ccaaDown'	
+	downpath='/data/ccaaDown'
+	caddypath='/data'
 	secret='canbya'	
 
 	sudo mkdir -p ${downingpath}
@@ -81,7 +82,7 @@ function install_caddy(){
 	sudo sed -i "s/username/${caddyuser}/g" /etc/ccaa/caddy.conf
 	sudo sed -i "s/password/${caddypass}/g" /etc/ccaa/caddy.conf
 	#sed -i "s%/home%${downpath}%g" /etc/ccaa/caddy.conf
-	sudo sed -i "s%/admin%/admin ${downpath}%g" /etc/ccaa/caddy.conf
+	sudo sed -i "s%/admin%/admin ${caddypath}%g" /etc/ccaa/caddy.conf
 
 	#一键安装https://caddyserver.com/download/linux/amd64?plugins=http.filemanager&license=personal&telemetry=off
 	#curl https://getcaddy.com | bash -s personal http.filemanager
